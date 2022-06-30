@@ -1,0 +1,39 @@
+name: Android CI
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: set up JDK 11
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'
+        distribution: 'adopt'
+        cache: gradle
+
+    - name: setup android-ndk
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r23
+
+    - name: update Submodules
+      run: git submodule update --init
+
+    - name: Grant execute permission for gradlew
+      run: |
+        cd RazeTouch
+        chmod +x gradlew
+
+    - name: Build with Gradle
+      run: |
+        cd RazeTouch/app
+        pushd src/main/jni
+        ndk-build
+        popd
+        ../gradlew assembleRelease
